@@ -1,0 +1,50 @@
+// fonts
+$fontFamily: "Plus Jakarta Sans", sans-serif;
+
+// colors
+$black: #05090f;
+$primary: #c8a26b;
+$secondary: #32281a;
+
+$lightyellow: #ffedcf;
+$lightgrey: #f7f7f2;
+$darkgreen: #002e33;
+$white: #ffffff;
+$richblack: #011a1d;
+
+$transition: cubic-bezier(0.55, 0.48, 0.15, 0.76);
+
+@mixin heading-1 {
+  font-weight: 600;
+  font-size: 64px;
+  line-height: 120%;
+
+  @media (max-width: 990px) {
+    font-size: 48px;
+  }
+  @media (max-width: 767px) {
+    font-size: 40px;
+  }
+}
+@mixin heading-2 {
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 120%;
+  letter-spacing: -0.5px;
+
+  @media (max-width: 1200px) {
+    font-size: 36px;
+  }
+  @media (max-width: 767px) {
+    font-size: 28px;
+  }
+}
+@mixin heading-3 {
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 130%;
+
+  @media (max-width: 767px) {
+    font-size: 28px;
+  }
+}
