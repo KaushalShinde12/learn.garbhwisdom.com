@@ -693,6 +693,10 @@ video {
   margin-top: auto;
 }
 
+.mt-1 {
+  margin-top: 8px;
+}
+
 .block {
   display: block;
 }
@@ -983,20 +987,16 @@ video {
   padding-bottom: 90px;
 }
 
+.pt-\[20px\] {
+  padding-top: 20px;
+}
+
 .pt-\[40px\] {
   padding-top: 40px;
 }
 
 .pt-\[80px\] {
   padding-top: 80px;
-}
-
-.pt-\[20px\] {
-  padding-top: 20px;
-}
-
-.pt-\[10px\] {
-  padding-top: 10px;
 }
 
 .text-left {
@@ -2710,6 +2710,10 @@ table th:last-child {
     margin-bottom: 6px;
   }
 
+  .md\:mt-5 {
+    margin-top: 48px;
+  }
+
   .md\:block {
     display: block;
   }
@@ -2767,20 +2771,12 @@ table th:last-child {
     padding-top: 160px;
   }
 
-  .md\:pt-\[60px\] {
-    padding-top: 60px;
-  }
-
-  .md\:pt-\[40px\] {
-    padding-top: 40px;
-  }
-
   .md\:pt-\[30px\] {
     padding-top: 30px;
   }
 
-  .md\:pt-\[0px\] {
-    padding-top: 0px;
+  .md\:pt-\[60px\] {
+    padding-top: 60px;
   }
 
   .md\:text-center {
@@ -2807,12 +2803,24 @@ table th:last-child {
     font-size: 24px;
   }
 
+  .md\:text-\[30px\] {
+    font-size: 30px;
+  }
+
   .md\:text-\[32px\] {
     font-size: 32px;
   }
 
   .md\:text-\[36px\] {
     font-size: 36px;
+  }
+
+  .md\:text-\[28px\] {
+    font-size: 28px;
+  }
+
+  .md\:text-\[26px\] {
+    font-size: 26px;
   }
 }
 
