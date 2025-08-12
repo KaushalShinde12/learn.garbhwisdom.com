@@ -142,66 +142,66 @@ navLinks.forEach((navLink) => {
 // Countdown timer
 
 // Set the date we're counting down to
-var countDownDate = new Date("Nov 5, 2023 15:37:25").getTime();
+// var countDownDate = new Date("Nov 5, 2023 15:37:25").getTime();
 
-// Update the count down every 1 second
-var x = setInterval(function () {
-  // Get today's date and time
-  var now = new Date().getTime();
+// // Update the count down every 1 second
+// var x = setInterval(function () {
+//   // Get today's date and time
+//   var now = new Date().getTime();
 
-  // Find the distance between now and the count down date
-  var distance = countDownDate - now;
+//   // Find the distance between now and the count down date
+//   var distance = countDownDate - now;
 
-  // Time calculations for days, hours, minutes and seconds
-  var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-  var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-  var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+//   // Time calculations for days, hours, minutes and seconds
+//   var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+//   var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+//   var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+//   var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-  // Display the result in the element with id="demo"
+//   // Display the result in the element with id="demo"
 
-  const daysContainer = document.querySelectorAll(".days-container");
-  const hoursContainer = document.querySelectorAll(".hours-container");
-  const minutesContainer = document.querySelectorAll(".minutes-container");
-  const secondsContainer = document.querySelectorAll(".seconds-container");
+//   const daysContainer = document.querySelectorAll(".days-container");
+//   const hoursContainer = document.querySelectorAll(".hours-container");
+//   const minutesContainer = document.querySelectorAll(".minutes-container");
+//   const secondsContainer = document.querySelectorAll(".seconds-container");
 
-  // document.getElementById('timer').innerHTML =
-  //   days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's ';
+//   // document.getElementById('timer').innerHTML =
+//   //   days + 'd ' + hours + 'h ' + minutes + 'm ' + seconds + 's ';
 
-  if (mobile) {
-    daysContainer.forEach((day) => {
-      day.innerHTML = days;
-    });
-    hoursContainer.forEach((hour) => {
-      hour.innerHTML = hours;
-    });
-    minutesContainer.forEach((minute) => {
-      minute.innerHTML = minutes;
-    });
-    secondsContainer.forEach((second) => {
-      second.innerHTML = seconds;
-    });
-  } else {
-    daysContainer.forEach((day) => {
-      day.innerHTML = ":" + days;
-    });
-    hoursContainer.forEach((hour) => {
-      hour.innerHTML = ":" + hours;
-    });
-    minutesContainer.forEach((minute) => {
-      minute.innerHTML = ":" + minutes;
-    });
-    secondsContainer.forEach((second) => {
-      second.innerHTML = ":" + seconds;
-    });
-  }
+//   if (mobile) {
+//     daysContainer.forEach((day) => {
+//       day.innerHTML = days;
+//     });
+//     hoursContainer.forEach((hour) => {
+//       hour.innerHTML = hours;
+//     });
+//     minutesContainer.forEach((minute) => {
+//       minute.innerHTML = minutes;
+//     });
+//     secondsContainer.forEach((second) => {
+//       second.innerHTML = seconds;
+//     });
+//   } else {
+//     daysContainer.forEach((day) => {
+//       day.innerHTML = ":" + days;
+//     });
+//     hoursContainer.forEach((hour) => {
+//       hour.innerHTML = ":" + hours;
+//     });
+//     minutesContainer.forEach((minute) => {
+//       minute.innerHTML = ":" + minutes;
+//     });
+//     secondsContainer.forEach((second) => {
+//       second.innerHTML = ":" + seconds;
+//     });
+//   }
 
-  // If the count down is finished, write some text
-  if (distance < 0) {
-    clearInterval(x);
-    document.getElementById("timer").innerHTML = "EXPIRED";
-  }
-}, 1000);
+//   // If the count down is finished, write some text
+//   if (distance < 0) {
+//     clearInterval(x);
+//     document.getElementById("timer").innerHTML = "EXPIRED";
+//   }
+// }, 1000);
 
 // Tiny slider
 
@@ -289,32 +289,32 @@ if (bannerSlider) {
 }
 
 // Popup-Ad
-let intervalID;
+// let intervalID;
 
-document.addEventListener("DOMContentLoaded", () => {
-  let closebtn = document.querySelector(".close-btn");
-  let popup = document.querySelector(".popup-ad");
-  let popupSlider = document.querySelector(".popup-slider");
+// document.addEventListener("DOMContentLoaded", () => {
+//   let closebtn = document.querySelector(".close-btn");
+//   let popup = document.querySelector(".popup-ad");
+//   let popupSlider = document.querySelector(".popup-slider");
 
-  const callTimeOut = (time) => {
-    setTimeout(() => {
-      popup.classList.remove("visible-popup");
-      popupSlider.classList.remove("animate");
-    }, time);
-  };
+//   const callTimeOut = (time) => {
+//     setTimeout(() => {
+//       popup.classList.remove("visible-popup");
+//       popupSlider.classList.remove("animate");
+//     }, time);
+//   };
 
-  // pop-up after every 5min = 300000ms
-  intervalID = setInterval(() => {
-    popup.classList.add("visible-popup");
-    popupSlider.classList.add("animate");
-    callTimeOut(15000);
-  }, 300000);
+//   // pop-up after every 5min = 300000ms
+//   intervalID = setInterval(() => {
+//     popup.classList.add("visible-popup");
+//     popupSlider.classList.add("animate");
+//     callTimeOut(15000);
+//   }, 300000);
 
-  closebtn.addEventListener("click", () => {
-    popup.classList.remove("visible-popup");
-    popupSlider.classList.remove("animate");
-  });
-});
+//   closebtn.addEventListener("click", () => {
+//     popup.classList.remove("visible-popup");
+//     popupSlider.classList.remove("animate");
+//   });
+// });
 
 const testimonialSlider = document.querySelector(".testimonial-slider");
 if (testimonialSlider) {

@@ -1466,6 +1466,8 @@ height: 20px;
 top: 5px;
 }
 
+
+
 @media(max-width: 1024px) {
 .list-check li {
 
@@ -1478,6 +1480,40 @@ top: 4px
 }
 }
 
+
+.list-feet li {
+
+    padding-left: 30px;
+    position: relative;
+    line-height: 26px;
+    }
+    
+    .list-feet li:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    background-image: url("../img/feet.svg");
+    background-size: cover;
+    width: 18px;
+    height: 18px;
+    opacity: 80%;
+    top: 5px;
+    }
+    
+    
+    
+    @media(max-width: 1024px) {
+    .list-feet li {
+    
+    padding-left: 26px;
+    } 
+    .list-feet li:before {
+    width: 18px;
+    height: 18px;
+    top: 4px
+    }
+    }
+    
 
 
 
