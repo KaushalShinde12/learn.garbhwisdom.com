@@ -1,14 +1,14 @@
 const mobile = window.innerWidth < 768;
 
 // navbar
-const headermain = document.querySelector(".header-main");
-window.addEventListener("scroll", () => {
-  if (window.scrollY > 150) {
-    headermain.classList.add("bg-black");
-  } else {
-    headermain.classList.remove("bg-black");
-  }
-});
+// const headermain = document.querySelector(".header-main");
+// window.addEventListener("scroll", () => {
+//   if (window.scrollY > 150) {
+//     headermain.classList.add("bg-black");
+//   } else {
+//     headermain.classList.remove("bg-black");
+//   }
+// });
 
 // Accordion
 window.addEventListener("load", () => {
