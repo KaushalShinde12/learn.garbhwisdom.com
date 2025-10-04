@@ -110,16 +110,16 @@ window.addEventListener("load", () => {
 });
 
 // footer banner
-const cards = document.querySelector(".footer-banner");
-if (mobile) {
-  window.addEventListener("scroll", () => {
-    if (window.scrollY > 100) {
-      cards.classList.add("show-footer-banner");
-    } else {
-      cards.classList.remove("show-footer-banner");
-    }
-  });
-}
+// const cards = document.querySelector(".footer-banner");
+// if (mobile) {
+//   window.addEventListener("scroll", () => {
+//     if (window.scrollY > 100) {
+//       cards.classList.add("show-footer-banner");
+//     } else {
+//       cards.classList.remove("show-footer-banner");
+//     }
+//   });
+// }
 
 // Open menu in mobile
 
@@ -206,6 +206,12 @@ navLinks.forEach((navLink) => {
 // Tiny slider
 
 const mobileview = window.innerWidth < 990;
+
+const mdview = window.innerWidth < 800;
+
+if(mdview){
+  document.querySelector('.core').remove()
+}
 
 // logo-slider
 const logoSlider = document.querySelector(".logo-slider");
