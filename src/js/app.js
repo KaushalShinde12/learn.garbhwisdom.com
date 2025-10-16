@@ -210,7 +210,8 @@ const mobileview = window.innerWidth < 990;
 const mdview = window.innerWidth < 800;
 
 if(mdview){
-  document.querySelector('.core').remove()
+  document.querySelector('.core').remove();
+  document.querySelector('.mob-hero').remove();
 }
 
 // logo-slider

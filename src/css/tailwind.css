@@ -958,10 +958,6 @@ video {
   margin-top: auto;
 }
 
-.mt-\[\] {
-  margin-top: ;
-}
-
 .block {
   display: block;
 }
@@ -1073,10 +1069,6 @@ video {
 
 .w-\[110px\] {
   width: 110px;
-}
-
-.w-\[120px\] {
-  width: 120px;
 }
 
 .w-\[140px\] {
@@ -1836,6 +1828,10 @@ video {
   padding-bottom: 20px;
 }
 
+.pb-\[40px\] {
+  padding-bottom: 40px;
+}
+
 .pb-\[60px\] {
   padding-bottom: 60px;
 }
@@ -1898,10 +1894,6 @@ video {
 
 .pt-\[80px\] {
   padding-top: 80px;
-}
-
-.pb-\[40px\] {
-  padding-bottom: 40px;
 }
 
 .text-left {
@@ -4058,10 +4050,6 @@ table th:last-child {
 }
 
 @media (min-width: 768px) {
-  .md\:absolute {
-    position: absolute;
-  }
-
   .md\:sticky {
     position: sticky;
   }
