@@ -1245,6 +1245,10 @@ video {
   max-width: fit-content;
 }
 
+.max-w-\[660px\] {
+  max-width: 660px;
+}
+
 .flex-shrink-0 {
   flex-shrink: 0;
 }
