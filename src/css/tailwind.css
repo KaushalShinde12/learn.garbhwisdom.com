@@ -1047,6 +1047,18 @@ video {
   height: 100%;
 }
 
+.h-\[1\] {
+  height: 1;
+}
+
+.h-\[160px\] {
+  height: 160px;
+}
+
+.h-\[90px\] {
+  height: 90px;
+}
+
 .\!w-\[30px\] {
   width: 30px !important;
 }
@@ -1073,6 +1085,10 @@ video {
 
 .w-\[140px\] {
   width: 140px;
+}
+
+.w-\[150px\] {
+  width: 150px;
 }
 
 .w-\[164px\] {
