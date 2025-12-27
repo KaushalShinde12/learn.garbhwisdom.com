@@ -821,7 +821,7 @@ button:disabled {
 }
 
 .single-accordion {
-    border: 1px solid rgba(15, 29, 48, .1);
+    /* border: 1px solid rgba(15, 29, 48, .1); */
     margin-bottom: 24px;
     padding: 24px 32px;
     border-radius: 16px
@@ -885,15 +885,15 @@ button:disabled {
 }
 
 .single-accordion .accordion-answer .answer-wrapper p {
-    font-size: 14px;
-    color: rgba(50, 40, 26, .7);
+    font-size: 15px;
+    /* color: rgba(50, 40, 26, .7); */
     line-height: 24px;
     margin-bottom: 0
 }
 
 @media(max-width: 767px) {
     .single-accordion .accordion-answer .answer-wrapper p {
-        font-size: 14px
+        font-size: 15px
     }
 }
 
