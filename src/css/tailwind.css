@@ -1796,6 +1796,11 @@ video {
   padding-bottom: 20px;
 }
 
+.py-\[30px\] {
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+
 .py-\[3px\] {
   padding-top: 3px;
   padding-bottom: 3px;
@@ -1814,11 +1819,6 @@ video {
 .py-\[72px\] {
   padding-top: 72px;
   padding-bottom: 72px;
-}
-
-.py-\[30px\] {
-  padding-top: 30px;
-  padding-bottom: 30px;
 }
 
 .pb-1 {
@@ -2119,6 +2119,10 @@ video {
   line-height: 1.44;
 }
 
+.leading-\[1\.47\] {
+  line-height: 1.47;
+}
+
 .leading-\[1\.5\] {
   line-height: 1.5;
 }
@@ -2149,22 +2153,6 @@ video {
 
 .leading-none {
   line-height: 1;
-}
-
-.leading-\[\] {
-  line-height: ;
-}
-
-.leading-\[1\.4\] {
-  line-height: 1.4;
-}
-
-.leading-\[1\.45\] {
-  line-height: 1.45;
-}
-
-.leading-\[1\.47\] {
-  line-height: 1.47;
 }
 
 .tracking-\[-0\.096px\] {
@@ -2287,6 +2275,12 @@ video {
 
 .opacity-80 {
   opacity: 0.8;
+}
+
+.shadow {
+  --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
 .shadow-sm {
@@ -4190,10 +4184,6 @@ table th:last-child {
     margin-top: 80px;
   }
 
-  .md\:mt-\[30px\] {
-    margin-top: 30px;
-  }
-
   .md\:block {
     display: block;
   }
@@ -4244,6 +4234,10 @@ table th:last-child {
 
   .md\:w-\[80\%\] {
     width: 80%;
+  }
+
+  .md\:w-\[90\%\] {
+    width: 90%;
   }
 
   .md\:w-auto {
@@ -4367,14 +4361,14 @@ table th:last-child {
     padding-bottom: 16px;
   }
 
-  .md\:py-\[80px\] {
-    padding-top: 80px;
-    padding-bottom: 80px;
-  }
-
   .md\:py-\[60px\] {
     padding-top: 60px;
     padding-bottom: 60px;
+  }
+
+  .md\:py-\[80px\] {
+    padding-top: 80px;
+    padding-bottom: 80px;
   }
 
   .md\:pb-\[100px\] {
