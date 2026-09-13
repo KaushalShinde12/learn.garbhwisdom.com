@@ -1,0 +1,1512 @@
+USE [PHG_GKSC_WMS]
+GO
+/****** Object:  StoredProcedure [PHGWMS].[Kernel_Msg512]    Script Date: 12/09/2026 21:35:21 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER     PROCEDURE [PHGWMS].[Kernel_Msg512] 
+(		@FileId		int	
+	,   @MsgFrom	varchar(256)
+	,	@MsgTxt		varchar(256)
+	,	@UserMsg		varchar(1024)	OUTPUT
+	
+) 
+as
+BEGIN TRY
+	 Declare @ErrorMsg  nvarchar(4000),
+	 @WasFileClosed		int,
+	 @FileName			varchar(256) = 'Kernel',
+	 @FunctionName		varchar(256) = '[Kernel_Msg512]',
+	 @ls_stm			varchar(256),
+	 @FileMsg			varchar(1024),
+	 @MsgText			varchar(1024),
+
+	 @ll_mvt_id			int,           
+	 @li_count          int,
+	 @ll_count_pallet_trf  int,
+	 @LL_COUNT_PND			int,
+
+	 @ll_ctrl				int,
+	 @new_mvt_id			int,
+	 @ll_pallet_id     varchar(256),
+	 @ls_error            varchar(256),
+	 @ll_wms_to_mes_seq   numeric,
+	--HUNIT
+	 @ll_ht_id			int,
+	 @Hu_HuBarCod		varchar(40),
+	 @Hu_HuptId			int,
+	 @Hu_HultDd			int,
+	 @Hu_Type			varchar(10),
+	 @Hu_SrcHe			int,
+	 @Hu_SrcWrh			int,
+	 @Hu_SrcHpGrp		int,
+	 @Hu_SrcHp			int,
+	 @Hu_SrcLoc			int,
+	 @Hu_SrcPos			int,
+	 @Hu_SrcA			int,
+	 @Hu_SrcX			int,
+	 @Hu_SrcY			int,
+	 @Hu_SrcZ			int,
+	 @Hu_SrcP			int,
+	 @Hu_DstHe			int,
+	 @Hu_DstWrh			int,
+	 @Hu_DstHpGrp		int,
+	 @Hu_DstHp			int,
+	 @Hu_DstLoc			int,
+	 @Hu_DstPos			int,
+	 @Hu_DstA			int,
+	 @Hu_DstX			int,
+	 @Hu_DstY			int,
+	 @Hu_DstZ			int,
+	 @Hu_DstP			int,
+	 @Hu_HuWidt			int,
+	 @Hu_HuHeig			int,
+	 @Hu_HuDept			int,
+	 @Hu_HuLeng			numeric(18, 3),
+	 @Hu_RoutRef			varchar(15),
+	 @Hu_RoutCod			varchar(20),
+	 @Hu_destCod			varchar(20),
+	 @Hu_RoutSeq			int,
+	 @Hu_Par1			varchar(256),
+	 @Hu_Par2			varchar(256),
+	 @Hu_Par3			varchar(256),
+	 @Hu_Par4			varchar(256),
+	 @Hu_Par5			varchar(256),
+	 @Hu_Par6			varchar(256),
+	 @Hu_Par7			varchar(256),
+	 @Hu_Par8			varchar(256),
+	 @ldt_hu_dt_last_out	datetime,
+	 @HU_STAT				varchar(3),
+	 @HU_USAGE           	varchar(15),
+	 @STATION_CODE			numeric(9,0),
+	--HUMOVT--
+	 @MVT_ID 				numeric(9, 0),
+	 @MVT_REQUEST 			numeric(9, 0),
+	 @MVT_REQ_HP 			numeric(9, 0),
+	 @MVT_TYPE 				varchar(10),
+	 @MVT_PRI 				numeric(1, 0),
+	 @MVT_EXEC_SEQ 			numeric(9, 0),
+	 @MVT_LOG_DEST 			varchar(30),
+	 @MVT_LOG_GRP 			varchar(30),
+	 @MVT_LOG_GRP_SEQ 		numeric(9, 0),
+	 @MVT_JOB_ID 			numeric(9, 0),
+	 @MVT_ORD_ITM 			numeric(9, 0),
+	 @MVT_ROUT_REF 			varchar(15),
+	 @MVT_ROUT_COD 			varchar(20),
+	 @MVT_ROUT_SEQ 			numeric(2, 0),
+	 @MVT_TAB_NR 			numeric(2, 0),
+	 @MVT_HU_ID 			numeric(9, 0),
+	 @MVT_HUPT_ID 			numeric(2, 0),
+	 @MVT_HULT_ID 			numeric(2, 0),
+	 @MVT_HU_BAR_COD 		varchar(40),
+	 @MVT_HU_WIDT 			numeric(9, 0),
+	 @MVT_HU_HEIG 			numeric(9, 0),
+	 @MVT_HU_DEPT 			numeric(9, 0),
+	 @MVT_HU_DIAM 			numeric(9, 0),
+	 @MVT_HU_LENG 			numeric(18, 3),
+	 @MVT_SRC_HE 			numeric(2, 0),
+	 @MVT_SRC_WRH 			numeric(2, 0),
+	 @MVT_SRC_HP_GRP 		numeric(9, 0),
+	 @MVT_SRC_HP 			numeric(9, 0),
+	 @MVT_SRC_LOC 			numeric(8, 0),
+	 @MVT_SRC_POS 			numeric(8, 0),
+	 @MVT_SRC_A 			numeric(2, 0),
+	 @MVT_SRC_X 			numeric(3, 0),
+	 @MVT_SRC_Y 			numeric(2, 0),
+	 @MVT_SRC_Z 			numeric(2, 0),
+	 @MVT_SRC_P 			numeric(2, 0),
+	 @MVT_CUR_HE 			numeric(2, 0),
+	 @MVT_CUR_WRH 			numeric(2, 0),
+	 @MVT_CUR_HP_GRP 		numeric(9, 0),
+	 @MVT_CUR_HP 			numeric(9, 0),
+	 @MVT_CUR_LOC 			numeric(8, 0),
+	 @MVT_CUR_POS 			numeric(8, 0),
+	 @MVT_CUR_A 			numeric(2, 0),
+	 @MVT_CUR_X 			numeric(3, 0),
+	 @MVT_CUR_Y 			numeric(2, 0),
+	 @MVT_CUR_Z 			numeric(2, 0),
+	 @MVT_CUR_P 			numeric(2, 0),
+	 @MVT_DST_HE 			numeric(2, 0),
+	 @MVT_DST_WRH 			numeric(2, 0),
+	 @MVT_DST_HP_GRP 		numeric(9, 0),
+	 @MVT_DST_HP 			numeric(9, 0),
+	 @MVT_DST_LOC 			numeric(8, 0),
+	 @MVT_DST_POS 			numeric(8, 0),
+	 @MVT_DST_A 			numeric(2, 0),
+	 @MVT_DST_X 			numeric(3, 0),
+	 @MVT_DST_Y 			numeric(2, 0),
+	 @MVT_DST_Z 			numeric(2, 0),
+	 @MVT_DST_P 			numeric(2, 0),
+	 @MVT_DST_AISL 			numeric(8, 0),
+	 @MVT_ID_LNK 			numeric(9, 0),
+	 @MVT_CRE_USER 			varchar(150),
+	 @MVT_EXE_USER 			varchar(150),
+	 @MVT_DT_DEF 			datetime, 
+	 @MVT_DT_ACT 			datetime, 
+	 @MVT_DT_EXE 			datetime, 
+	 @MVT_DT_CFM 			datetime, 
+	 @MVT_DT_TRM 			datetime, 
+	 @MVT_STAT_EVT 			numeric(4, 0),
+	 @MVT_CBUFFER 			char(1),
+	 @MVT_MH_ID 			numeric(2, 0),
+	 @MVT_PROC 				varchar(20),
+	 @MVT_PAR1 				varchar(256),
+	 @MVT_PAR2 				varchar(256),
+	 @MVT_PAR3 				varchar(256),
+	 @MVT_PAR4 				varchar(256),
+	 @MVT_PAR5 				varchar(256),
+	 @MVT_PAR6 				varchar(256),
+	 @MVT_PAR7 				varchar(256),
+	 @MVT_PAR8 				varchar(256),
+	 @MVT_CANCEL_ID 		numeric(9, 0),
+	 @MVT_ERROR 			numeric(4, 0),
+	 @MVT_STAT_REQ 			varchar(3),
+	 @MVT_LAST_STAT 		varchar(3),
+	 @MVT_STAT 				varchar(3),
+
+	 @LL_MVT_PACK1_QTY 		numeric(9, 0),
+	 @LL_MVT_PACK2_QTY 		numeric(9, 0),
+	 @LL_MVT_PACK3_QTY 		numeric(9, 0),
+	 @LL_MVT_PACK4_QTY 		numeric(9, 0),
+	 @ST_MVT1_PACK_QTY 		varchar(10),
+	 @ST_MVT2_PACK_QTY 		varchar(10),
+	 @ST_MVT3_PACK_QTY 		varchar(10),
+	 @ST_MVT4_PACK_QTY 		varchar(10),
+	 @ST_MVT_SEQ_NR 		numeric(9, 0),
+	 @ST_MVT_ORD_ITM 		numeric(9, 0),
+	 @ST_MVT_ORD_MVT_TYPE 		varchar(10),
+	 @ST_MVT_ORD_TYPE 		varchar(10),
+	 @ST_MVT_EXEC_SEQ 		numeric(9, 0),
+	 @ST_MVT_LOG_DEST 		varchar(30),
+	 @ST_MVT_LOG_GRP 		varchar(30),
+	 @ST_MVT_LOG_GRP_SEQ 		numeric(9, 0),
+	 @ST_MVT_JOB_ID 		numeric(9, 0),
+	 @ST_MVT_PRD_COD 		varchar(40),
+	 @ST_MVT_PRD_GRP_COD 		varchar(40),
+	 @ST_MVT_PRD_DESC 		varchar(80),
+	 @ST_MVT_STK_TYPE 		char(3),
+	 @ST_MVT_BATCH_NR 		varchar(50),
+	 @ST_MVT_EXP_DT 		datetime, 
+	 @ST_MVT_PACK_UNIT 		varchar(3),
+	 @ST_MVT_PACK_QTY 		varchar(20),
+	 @ST_MVT_PACK_WEIG 		numeric(18, 3),
+	 @ST_MVT_QTY_UNIT 		varchar(3),
+	 @ST_MVT_PRD_QTY 		numeric(18, 3),
+	 @ST_MVT_DST_QTY 		numeric(18, 3),
+	 @ST_MVT_DIFF_QTY 		numeric(18, 3),
+	 @ST_MVT_PRD_WIDT 		numeric(9, 0),
+	 @ST_MVT_PRD_HEIG numeric(9, 0),
+	 @ST_MVT_PRD_DEPT numeric(9, 0),
+	 @ST_MVT_PRD_DIAM float,
+	 @ST_MVT_PRD_LENG numeric(18, 3),
+	 @ST_MVT_PRD_WEIG numeric(18, 3),
+	 @ST_MVT_PRD_VOL numeric(18, 3),
+	 @ST_MVT_REC_NR varchar(20),
+	 @ST_MVT_REC_POS numeric(9, 0),
+	 @ST_MVT_SUPL_COD varchar(40),
+	 @ST_MVT_SUPL_LAB varchar(40),
+	 @ST_MVT_CUSTOMS_NR varchar(15),
+	 @ST_MVT_INSPECT_NR varchar(15),
+	 @ST_MVT_SERIE_NR varchar(40),
+	 @ST_MVT_SI_NUMBER numeric,
+	 @ST_MVT_VERSION_NR varchar(10),
+	 @ST_MVT_TRACK_VALUE varchar(12),
+	 @ST_MVT_EXP_COD varchar(40),
+	 @ST_MVT_DEST_COD varchar(20),
+	 @ST_MVT_DEST_TYPE varchar(10),
+	 @ST_MVT_ORD_REF_MVT_TYPE varchar(20),
+	 @ST_MVT_ORD_REF_TYPE varchar(20),
+	 @ST_MVT_ORD_REF_NR varchar(20),
+	 @ST_MVT_ORD_REF_POS numeric(9, 0),
+	 @ST_MVT_ORD_REF_DET numeric(2, 0),
+	 @ST_MVT_REQ_COSTC varchar(20),
+	 @ST_MVT_REQ_DOC varchar(20),
+	 @ST_MVT_REQ_DOC_POS numeric(30, 0),
+	 @ST_MVT_REQ_RSNUM varchar(20),
+	 @ST_MVT_REQ_RSNUM_POS numeric(30, 0),
+	 @ST_MVT_ROUT_REF varchar(15),
+	 @ST_MVT_ROUT_COD varchar(20),
+	 @ST_MVT_ROUT_SEQ numeric(9, 0),
+	 @ST_MVT_STK_CLIENT varchar(40),
+	 @ST_MVT_PRD_COD_CPY varchar(10),
+	 @ST_MVT_PRD_COD_TYPE varchar(10),
+	 @ST_MVT_PRD_COD_DET varchar(20),
+	 @ST_MVT_ID numeric(9, 0),
+	 @ST_MVT_TYPE varchar(10),
+	 @ST_MVT_SRC_TAB_NR numeric(2, 0),
+	 @ST_MVT_SRC_HU numeric(9, 0),
+	 @ST_MVT_SRC_HU_BAR_COD varchar(40),
+	 @ST_MVT_SRC_HBIN numeric(2, 0),
+	 @ST_MVT_SRC_STK numeric(9, 0),
+	 @ST_MVT_SRC_WRH numeric(2, 0),
+	 @ST_MVT_SRC_HP_GRP numeric(9, 0),
+	 @ST_MVT_SRC_HP numeric(9, 0),
+	 @ST_MVT_SRC_AISL numeric(2, 0),
+	 @ST_MVT_SRC_X numeric(4, 0),
+	 @ST_MVT_SRC_Y numeric(4, 0),
+	 @ST_MVT_SRC_Z numeric(2, 0),
+	 @ST_MVT_SRC_P numeric(2, 0),
+	 @ST_MVT_SRC_HU_USAGE char(3),
+	 @ST_MVT_DST_TAB_NR numeric(2, 0),
+	 @ST_MVT_DST_HU numeric(9, 0),
+	 @ST_MVT_DST_HU_BAR_COD varchar(40),
+	 @ST_MVT_DST_HBIN numeric(2, 0),
+	 @ST_MVT_DST_STK numeric(9, 0),
+	 @ST_MVT_DST_WRH numeric(2, 0),
+	 @ST_MVT_DST_HP_GRP numeric(9, 0),
+	 @ST_MVT_DST_HP numeric(9, 0),
+	 @ST_MVT_DST_AISL numeric(2, 0),
+	 @ST_MVT_DST_X numeric(4, 0),
+	 @ST_MVT_DST_Y numeric(4, 0),
+	 @ST_MVT_DST_Z numeric(2, 0),
+	 @ST_MVT_DST_P numeric(2, 0),
+	 @ST_MVT_DST_HU_USAGE char(3),
+	 @ST_MVT_DT_MFG datetime, 
+	 @ST_MVT_HP_GRP_MFG numeric(9, 0),
+	 @ST_MVT_HP_MFG numeric(9, 0),
+	 @ST_MVT_DOC_NR_MFG varchar(20),
+	 @ST_MVT_COMMENT varchar(256),
+	 @ST_MVT_ERR_SEQ_NR numeric(9, 0),
+	 @ST_MVT_EXE_USER varchar(150),
+	 @ST_MVT_CAN_USER varchar(150),
+	 @ST_MVT_CFM_USER varchar(150),
+	 @ST_MVT_DT_DEF datetime, 
+	 @ST_MVT_DT_ACT datetime, 
+	 @ST_MVT_DT_EXE datetime, 
+	 @ST_MVT_DT_CFM datetime, 
+	 @ST_MVT_DT_TRM datetime, 
+	 @ST_MVT_PAR1 varchar(256),
+	 @ST_MVT_PAR2 varchar(256),
+	 @ST_MVT_PAR3 varchar(256),
+	 @ST_MVT_PAR4 varchar(256),
+	 @ST_MVT_PAR5 varchar(256),
+	 @ST_MVT_PAR6 varchar(256),
+	 @ST_MVT_PAR7 varchar(256),
+	 @ST_MVT_PAR8 varchar(256),
+	 @ST_MVT_REASON numeric(4, 0),
+	 @ST_MVT_ERROR numeric(4, 0),
+	 @ST_MVT_STAT_REQ varchar(3),
+	 @ST_MVT_STAT varchar(3),
+	 @ST_MVT_1_COORDINATE FLOAT,
+	 @ST_MVT_2_COORDINATE FLOAT,
+	 @ST_MVT_3_COORDINATE FLOAT,
+	 @ST_MVT_4_COORDINATE FLOAT,
+
+	 @ORD_ID numeric,
+	 @ORD_ITM_ID numeric(9, 0),
+	 @ORD_ITM_POS numeric(9, 0), 
+	 @ORD_ITM_PARCIAL numeric(4, 0), 
+	 @ORD_PRI numeric(1, 0), 
+	 @ORD_EXEC_SEQ numeric(9, 0), 
+	 @ORD_LOG_DEST varchar(30), 
+	 @ORD_LOG_GRP varchar(30), 
+	 @ORD_LOG_GRP_SEQ numeric(9, 0), 
+	 @ORD_SRC char(1), 
+	 @ORD_MVT_TYPE varchar(10), 
+	 @ORD_TYPE varchar(10), 
+	 @ORD_REF_MVT_TYPE varchar(20), 
+	 @ORD_REF_TYPE varchar(20), 
+	 @ORD_REF_NR varchar(20), 
+	 @ORD_REF_POS numeric(9, 0), 
+	 @ORD_REF_DET numeric(2, 0), 
+	 @ORD_HUPT numeric(2, 0), 
+	 @ORD_HULT numeric(2, 0), 
+	 @ORD_HU_ID numeric(9, 0), 
+	 @ORD_HU_BAR_COD varchar(40), 
+	 @ORD_HBT_ID numeric(2, 0), 
+	 @ORD_HBIN_ID numeric(4, 0), 
+	 @ORD_PRD_COD varchar(40), 
+	 @ORD_PRD_GRP_COD varchar(40), 
+	 @ORD_STK_TYPE char(3), 
+	 @ORD_BATCH_NR varchar(20), 
+	 @ORD_DT_EXPIRAT datetime, 
+	 @ORD_DT_PRD datetime, 
+	 @ORD_CTR_QUA char(1), 
+	 @ORD_REQ_QTY numeric(18, 3), 
+	 @ORD_RSV_QTY numeric(18, 3), 
+	 @ORD_PRC_QTY numeric(18, 3), 
+	 @ORD_EXE_QTY numeric(18, 3), 
+	 @ORD_CFM_QTY numeric(18, 3), 
+	 @ORD_RDIF_QTY numeric(18, 3), 
+	 @ORD_GARB_QTY numeric(18, 3), 
+	 @ORD_DIFF_COD numeric(1, 0), 
+	 @ORD_DIFF_QTY numeric(18, 3), 
+	 @ORD_REQ_HU numeric(6, 0), 
+	 @ORD_RSV_HU numeric(6, 0), 
+	 @ORD_PRC_HU numeric(6, 0), 
+	 @ORD_EXE_HU numeric(6, 0), 
+	 @ORD_CFM_HU numeric(6, 0), 
+	 @ORD_MEAS_UNIT varchar(3), 
+	 @ORD_QTY_UNIT varchar(3), 
+	 @ORD_PRD_UWG numeric(18, 3), 
+	 @ORD_WEIG_UNIT varchar(3), 
+	 @ORD_RSV_UWG numeric(18, 3), 
+	 @ORD_PRC_UWG numeric(18, 3), 
+	 @ORD_EXE_UWG numeric(18, 3), 
+	 @ORD_CFM_UWG numeric(18, 3), 
+	 @ORD_RDIF_UWG numeric(18, 3), 
+	 @ORD_GARB_UWG numeric(18, 3), 
+	 @ORD_DIFF_UWG numeric(18, 3), 
+	 @ORD_PACK_QTY numeric(18, 3), 
+	 @ORD_PACK_UNIT varchar(3), 
+	 @ORD_PRD_UVOL numeric(18, 3), 
+	 @ORD_VOL_UNIT varchar(3), 
+	 @ORD_DT_REQUEST datetime, 
+	 @ORD_DT_DEF datetime, 
+	 @ORD_DT_ACT datetime, 
+	 @ORD_DT_EXE datetime, 
+	 @ORD_DT_CFM datetime, 
+	 @ORD_DT_TRM datetime, 
+	 @ORD_CRE_USER varchar(150), 
+	 @ORD_EXE_USER varchar(150), 
+	 @ORD_CFM_USER varchar(150), 
+	 @ORD_CRE_WKS_ID varchar(15), 
+	 @ORD_EXE_WKS_ID varchar(15), 
+	 @ORD_CFM_WKS_ID varchar(15), 
+	 @ORD_SRC_WRH numeric(2, 0), 
+	 @ORD_SRC_SECT numeric(2, 0), 
+	 @ORD_SRC_HP_GRP numeric(9, 0), 
+	 @ORD_SRC_HP numeric(9, 0), 
+	 @ORD_SRC_LOC numeric(8, 0), 
+	 @ORD_DST_WRH numeric(2, 0), 
+	 @ORD_DST_SECT numeric(2, 0), 
+	 @ORD_DST_HP_GRP numeric(9, 0), 
+	 @ORD_DST_HP numeric(9, 0), 
+	 @ORD_DST_LOC numeric(8, 0), 
+	 @ORD_REC_NR varchar(20), 
+	 @ORD_REC_POS numeric(9, 0), 
+	 @ORD_SUPL_COD varchar(40), 
+	 @ORD_SUPL_LAB varchar(40), 
+	 @ORD_CUSTOM_NR varchar(15), 
+	 @ORD_INSPECT_NR varchar(15), 
+	 @ORD_SERIE_NR varchar(40), 
+	 @ORD_VERSION_NR varchar(10), 
+	 @ORD_REQ_DOC varchar(20), 
+	 @ORD_REQ_DOC_POS numeric(9, 0), 
+	 @ORD_REQ_RSNUM varchar(20), 
+	 @ORD_REQ_RSNUM_POS numeric(9, 0), 
+	 @ORD_JOB_ITM_ID numeric(9, 0), 
+	 @ORD_JOB_TRT_ID numeric(9, 0), 
+	 @ORD_SR_ID varchar(20), 
+	 @ORD_CLIENT varchar(40), 
+	 @ORD_DEST_COD varchar(20), 
+	 @ORD_DEST_TYPE varchar(10), 
+	 @ORD_ROUT_REF varchar(15), 
+	 @ORD_ROUT_COD varchar(20), 
+	 @ORD_ROUT_SEQ numeric(2, 0), 
+	 @ORD_PRD_COD_CPY varchar(10), 
+	 @ORD_PRD_COD_TYPE varchar(10), 
+	 @ORD_PRD_COD_DET varchar(20), 
+	 @ORD_DOC_NR_MFG varchar(20), 
+	 @ORD_COMMENT varchar(256), 
+	 @ORD_ERR_SEQ_NR numeric(9, 0), 
+	 @ORD_PAR1 varchar(256), 
+	 @ORD_PAR2 varchar(256), 
+	 @ORD_PAR3 varchar(256), 
+	 @ORD_PAR4 varchar(256), 
+	 @ORD_PAR5 varchar(256), 
+	 @ORD_PAR6 varchar(256), 
+	 @ORD_PAR7 varchar(256), 
+	 @ORD_PAR8 varchar(256), 
+	 @ORD_FLW_STAT varchar(3), 
+	 @ORD_ERROR numeric(4, 0), 
+	 @ORD_ITM_STAT_LAST varchar(3), 
+	 @ORD_ITM_STAT_REQ varchar(3), 
+	 @ORD_ITM_STAT varchar(3),
+	 @ORD_REQ_ID numeric(9, 0), 
+	 @ORD_REQ_PRI numeric(1, 0), 
+	 @ORD_REQ_EXEC_SEQ numeric(9, 0), 
+	 @ORD_REQ_SRC char(1), 
+	 @ORD_REQ_MVT_TYPE varchar(10), 
+	 @ORD_REQ_TYPE varchar(10), 
+	 @ORD_REQ_REF_MVT_TYPE varchar(20), 
+	 @ORD_REQ_REF_TYPE varchar(20), 
+	 @ORD_REQ_REF_NR varchar(20), 
+	 @ORD_REQ_DT_REQUEST datetime, 
+	 @ORD_REQ_DT_DEF datetime, 
+	 @ORD_REQ_DT_ACT datetime, 
+	 @ORD_REQ_DT_EXE datetime, 
+	 @ORD_REQ_DT_CFM datetime, 
+	 @ORD_REQ_DT_TRM datetime, 
+	 @ORD_REQ_CRE_USER varchar(150), 
+	 @ORD_REQ_SRC_WRH numeric(2, 0), 
+	 @ORD_REQ_SRC_SECT numeric(2, 0), 
+	 @ORD_REQ_SRC_HP_GRP numeric(9, 0), 
+	 @ORD_REQ_SRC_HP numeric(9, 0), 
+	 @ORD_REQ_SRC_LOC numeric(8, 0), 
+	 @ORD_REQ_DST_WRH numeric(2, 0), 
+	 @ORD_REQ_DST_SECT numeric(2, 0), 
+	 @ORD_REQ_DST_HP_GRP numeric(9, 0), 
+	 @ORD_REQ_DST_HP numeric(9, 0), 
+	 @ORD_REQ_DST_LOC numeric(8, 0), 
+	 @ORD_REQ_HP_GRP_DOCK numeric(9, 0), 
+	 @ORD_REQ_HP_DOCK numeric(9, 0), 
+	 @ORD_REQ_COMMENT varchar(80), 
+	 @ORD_REQ_SUPL_COD varchar(40), 
+	 @ORD_REQ_REQ_TYPE char(3), 
+	 @ORD_REQ_REQ_DOC varchar(20), 
+	 @ORD_REQ_REQ_COSTC varchar(20), 
+	 @ORD_REQ_REQ_RSNUM varchar(20), 
+	 @ORD_REQ_NBR_HU numeric(6, 0), 
+	 @ORD_REQ_WEIG numeric(18, 3), 
+	 @ORD_REQ_VOLUME numeric(18, 3), 
+	 @ORD_REQ_CLIENT varchar(40), 
+	 @ORD_REQ_DEST_COD varchar(20), 
+	 @ORD_REQ_DEST_TYPE varchar(10), 
+	 @ORD_REQ_ROUT_REF varchar(15), 
+	 @ORD_REQ_ROUT_COD varchar(20), 
+	 @ORD_REQ_POST_NR varchar(20), 
+	 @ORD_REQ_JOB_ID numeric(9, 0), 
+	 @ORD_REQ_SR_ID varchar(20), 
+	 @ORD_REQ_TYP_PREP varchar(7), 
+	 @ORD_REQ_EXP_COD varchar(40), 
+	 @ORD_REQ_PRC_ITMS numeric(5, 0), 
+	 @ORD_REQ_TOT_ITMS numeric(5, 0), 
+	 @ORD_REQ_CFM_TYPE varchar(3), 
+	 @ORD_REQ_RSV_TYPE varchar(3), 
+	 @ORD_REQ_EXE_TYPE varchar(3), 
+	 @ORD_REQ_ERR_SEQ_NR numeric(9, 0), 
+	 @ORD_REQ_PAR1 varchar(256), 
+	 @ORD_REQ_PAR2 varchar(256), 
+	 @ORD_REQ_PAR3 varchar(256), 
+	 @ORD_REQ_PAR4 varchar(256), 
+	 @ORD_REQ_PAR5 varchar(256), 
+	 @ORD_REQ_PAR6 varchar(256), 
+	 @ORD_REQ_PAR7 varchar(256), 
+	 @ORD_REQ_PAR8 varchar(256), 
+	 @ORD_REQ_STAT_LAST varchar(3), 
+	 @ORD_REQ_STAT_REQ varchar(3), 
+	 @ORD_REQ_STAT varchar(3),
+	 @LOC_ID numeric(8, 0),
+	 @LOC_POS numeric(8, 0),
+	 @LOC_BAR_COD varchar(40), 
+	 @LOC_SEQ numeric(6, 0), 
+	 @LOC_WRH_ID numeric(2, 0), 
+	 @LOC_SECT_ID numeric(2, 0), 
+	 @LOC_HZ_ID numeric(9, 0), 
+	 @LOC_HP_GRP numeric(9, 0), 
+	 @LOC_HP_ID numeric(9, 0), 
+	 @LOC_AISL_ID numeric(2, 0), 
+	 @LOC_X numeric(3, 0), 
+	 @LOC_Y numeric(2, 0), 
+	 @LOC_Z numeric(2, 0), 
+	 @LOC_P numeric(2, 0), 
+	 @LOC_SLT_ID numeric(2, 0), 
+	 @LOC_TYPE varchar(3), 
+	 @LOC_MANU_FLAG char(1), 
+	 @LOC_MULTI_HU char(1), 
+	 @LOC_REC_TYP char(1), 
+	 @LOC_MAX_VOL numeric(18, 3), 
+	 @LOC_MAX_WEIG numeric(18, 3), 
+	 @LOC_MAX_BIN numeric(2, 0), 
+	 @LOC_FREE_VOL numeric(18, 3), 
+	 @LOC_FREE_WEIG numeric(18, 3), 
+	 @LOC_FREE_BIN numeric(2, 0), 
+	 @LOC_OCP_VOL numeric(18, 3), 
+	 @LOC_OCP_WEIG numeric(18, 3), 
+	 @LOC_OCP_BIN numeric(2, 0), 
+	 @LOC_HU_ID numeric(9, 0), 
+	 @LOC_HULT_ID numeric(2, 0), 
+	 @LOC_HUPT_ID numeric(2, 0), 
+	 @LOC_HU_POSX_I numeric(9, 0), 
+	 @LOC_HU_POSX_F numeric(9, 0), 
+	 @LOC_HU_POSY_I numeric(9, 0), 
+	 @LOC_HU_POSY_F numeric(9, 0), 
+	 @LOC_HU_POSP_I numeric(9, 0), 
+	 @LOC_HU_POSP_F numeric(9, 0), 
+	 @LOC_PRD_GRP_COD varchar(40), 
+	 @LOC_PRD_COD varchar(40), 
+	 @LOC_MIN_QTY numeric(18, 3), 
+	 @LOC_MAX_QTY numeric(18, 3), 
+	 @LOC_PRD_WEIG numeric(18, 3), 
+	 @LOC_ROTAT_IDX char(1), 
+	 @LOC_DT_FIRST_IN datetime, 
+	 @LOC_DT_LAST_IN datetime, 
+	 @LOC_DT_LAST_OUT datetime, 
+	 @LOC_IN_COUNT numeric(5, 0), 
+	 @LOC_OUT_COUNT numeric(5, 0), 
+	 @LOC_NBR_HU numeric(3, 0), 
+	 @LOC_DEST_COD varchar(20), 
+	 @LOC_CLIENT varchar(40), 
+	 @LOC_ORD_REF_MVT_TYPE varchar(20), 
+	 @LOC_ORD_REF_TYPE varchar(20), 
+	 @LOC_ORD_REF_NR varchar(20), 
+	 @LOC_SUPL_COD varchar(40), 
+	 @LOC_HT_ID numeric(9, 0), 
+	 @LOC_HT_DEST_ID numeric(9, 0), 
+	 @LOC_OCP_MASK varchar(300),
+	 @LOC_PAR1 varchar(256), 
+	 @LOC_PAR2 varchar(256), 
+	 @LOC_PAR3 varchar(256), 
+	 @LOC_PAR4 varchar(256), 
+	 @LOC_PAR5 varchar(256), 
+	 @LOC_PAR6 varchar(256), 
+	 @LOC_PAR7 varchar(256), 
+	 @LOC_PAR8 varchar(256), 
+	 @LOC_I_FLW_STAT varchar(3), 
+	 @LOC_O_FLW_STAT char(3), 
+	 @LOC_STAT_REASON numeric(4, 0), 
+	 @LOC_STAT varchar(3),
+	-- @ll_pallet_id int,
+	 @TOTAL_QTY_FOR_PNP NUMERIC(18,3),
+	 @PALLET_QTY NUMERIC(18,3),
+	 @ll_seq_wms_to_host BIGINT;
+	 --512000000644
+	Set @FileMsg ='--------------** Msg-512 **---------------------'
+	Execute PHGWMS.write_log @FileId, @FileMsg
+	
+	Set @FileMsg = @FunctionName + 'MsgFrom: '+ convert(varchar, @MsgFrom)
+	Execute write_log  @FileId, @FileMsg
+	
+	Set @FileMsg = @FunctionName + '512 MsgTxt	: '+ convert(varchar, @MsgTxt)
+	Execute write_log  @FileId, @FileMsg
+
+    set @ll_mvt_id = substring(@MsgTxt,4,9);
+	Set @FileMsg = @FunctionName + 'Mvt ID ' + convert(varchar, @ll_mvt_id)
+    Execute write_log @FileId, @FileMsg
+
+	Set @FileMsg = @FunctionName + 'Selected  Movement Id : ' + convert(varchar, @ll_mvt_id)
+    Execute write_log @FileId, @FileMsg	
+
+    --Get Humovt Data
+
+	BEGIN 
+		Select @MVT_ID	=	MVT_ID
+				,@MVT_REQUEST	=	MVT_REQUEST
+				,@MVT_REQ_HP	=	MVT_REQ_HP
+				,@MVT_TYPE	=	MVT_TYPE
+				,@MVT_PRI	=	MVT_PRI
+				,@MVT_EXEC_SEQ	=	MVT_EXEC_SEQ
+				,@MVT_LOG_DEST	=	MVT_LOG_DEST
+				,@MVT_LOG_GRP	=	MVT_LOG_GRP
+				,@MVT_LOG_GRP_SEQ	=	MVT_LOG_GRP_SEQ
+				,@MVT_JOB_ID	=	MVT_JOB_ID
+				,@MVT_ORD_ITM	=	MVT_ORD_ITM
+				,@MVT_ROUT_REF	=	MVT_ROUT_REF
+				,@MVT_ROUT_COD	=	MVT_ROUT_COD
+				,@MVT_ROUT_SEQ	=	MVT_ROUT_SEQ
+				,@MVT_TAB_NR	=	MVT_TAB_NR
+				,@MVT_HU_ID	=	MVT_HU_ID
+				,@MVT_HUPT_ID	=	MVT_HUPT_ID
+				,@MVT_HULT_ID	=	MVT_HULT_ID
+				,@MVT_HU_BAR_COD	=	MVT_HU_BAR_COD
+				,@MVT_HU_WIDT	=	MVT_HU_WIDT
+				,@MVT_HU_HEIG	=	MVT_HU_HEIG
+				,@MVT_HU_DEPT	=	MVT_HU_DEPT
+				,@MVT_HU_DIAM	=	MVT_HU_DIAM
+				,@MVT_HU_LENG	=	MVT_HU_LENG
+				,@MVT_SRC_HE	=	MVT_SRC_HE
+				,@MVT_SRC_WRH	=	MVT_SRC_WRH
+				,@MVT_SRC_HP_GRP	=	MVT_SRC_HP_GRP
+				,@MVT_SRC_HP	=	MVT_SRC_HP
+				,@MVT_SRC_LOC	=	MVT_SRC_LOC
+				,@MVT_SRC_POS	=	MVT_SRC_POS
+				,@MVT_SRC_A	=	MVT_SRC_A
+				,@MVT_SRC_X	=	MVT_SRC_X
+				,@MVT_SRC_Y	=	MVT_SRC_Y
+				,@MVT_SRC_Z	=	MVT_SRC_Z
+				,@MVT_SRC_P	=	MVT_SRC_P
+				,@MVT_CUR_HE	=	MVT_CUR_HE
+				,@MVT_CUR_WRH	=	MVT_CUR_WRH
+				,@MVT_CUR_HP_GRP	=	MVT_CUR_HP_GRP
+				,@MVT_CUR_HP	=	MVT_CUR_HP
+				,@MVT_CUR_LOC	=	MVT_CUR_LOC
+				,@MVT_CUR_POS	=	MVT_CUR_POS
+				,@MVT_CUR_A	=	MVT_CUR_A
+				,@MVT_CUR_X	=	MVT_CUR_X
+				,@MVT_CUR_Y	=	MVT_CUR_Y
+				,@MVT_CUR_Z	=	MVT_CUR_Z
+				,@MVT_CUR_P	=	MVT_CUR_P
+				,@MVT_DST_HE	=	MVT_DST_HE
+				,@MVT_DST_WRH	=	MVT_DST_WRH
+				,@MVT_DST_HP_GRP	=	MVT_DST_HP_GRP
+				,@MVT_DST_HP	=	MVT_DST_HP
+				,@MVT_DST_LOC	=	MVT_DST_LOC
+				,@MVT_DST_POS	=	MVT_DST_POS
+				,@MVT_DST_A	=	MVT_DST_A
+				,@MVT_DST_X	=	MVT_DST_X
+				,@MVT_DST_Y	=	MVT_DST_Y
+				,@MVT_DST_Z	=	MVT_DST_Z
+				,@MVT_DST_P	=	MVT_DST_P
+				,@MVT_ID_LNK	=	MVT_ID_LNK
+				,@MVT_CRE_USER	=	MVT_CRE_USER
+				,@MVT_EXE_USER	=	MVT_EXE_USER
+				,@MVT_DT_DEF	=	MVT_DT_DEF
+				,@MVT_DT_ACT	=	MVT_DT_ACT
+				,@MVT_DT_EXE	=	MVT_DT_EXE
+				,@MVT_DT_CFM	=	MVT_DT_CFM
+				,@MVT_DT_TRM	=	MVT_DT_TRM
+				,@MVT_STAT_EVT	=	MVT_STAT_EVT
+				,@MVT_CBUFFER	=	MVT_CBUFFER
+				,@MVT_MH_ID	=	MVT_MH_ID
+				,@MVT_PROC	=	MVT_PROC
+				,@MVT_PAR1	=	MVT_PAR1
+				,@MVT_PAR2	=	MVT_PAR2
+				,@MVT_PAR3	=	MVT_PAR3
+				,@MVT_PAR4	=	MVT_PAR4
+				,@MVT_PAR5	=	MVT_PAR5
+				,@MVT_PAR6	=	MVT_PAR6
+				,@MVT_PAR7	=	MVT_PAR7
+				,@MVT_PAR8	=	MVT_PAR8
+				,@MVT_CANCEL_ID	=	MVT_CANCEL_ID
+				,@MVT_ERROR	=	MVT_ERROR
+				,@MVT_STAT_REQ	=	MVT_STAT_REQ
+				,@MVT_LAST_STAT	=	MVT_LAST_STAT
+				,@MVT_STAT	=	MVT_STAT
+				,@MVT_PAR3  =   MVT_PAR3
+	   from humovt
+	   where mvt_id = @ll_mvt_id;
+	   
+		If @@ROWCOUNT = 0 
+			begin 
+				set @FileMsg = +@FunctionName +' - there is no record on humovt for mvt_id  -- So Ignore this';
+				Execute write_log @FileId, @FileMsg;
+				return 1;
+			end;
+	END 
+
+	Set @FileMsg = @FunctionName + ' Movement Type : ' + convert(varchar, @MVT_TYPE)
+    Execute write_log @FileId, @FileMsg
+
+	Set @FileMsg = @FunctionName + ' Dummy Pallet Id : ' + convert(varchar, @MVT_HU_ID)	
+    Execute write_log @FileId, @FileMsg	
+	
+	Set @FileMsg = @FunctionName + ' Actual Pallet Id : ' + convert(varchar, @MVT_PAR1)	
+    Execute write_log @FileId, @FileMsg	
+
+
+    IF @MVT_TYPE in ('IN_INI','IN_LST')
+	  BEGIN
+
+			If (@MVT_TYPE = 'IN_LST')		
+				Begin
+						Set @ll_pallet_id = @MVT_PAR1; --- Set Actual Pallet Id
+
+						Set @FileMsg = @FunctionName + ' Pallet Id : ' + convert(varchar, @ll_pallet_id)
+						Execute write_log @FileId, @FileMsg		
+					
+                            DELETE FROM HUNIT1
+                            WHERE HU_ID = @MVT_HU_ID
+                            AND HU_STAT = 'TRA'
+                            AND HU_ID > 1000000; 
+							
+						if (@@ROWCOUNT = 0)
+						begin
+							Set @FileMsg = @FunctionName + ' Error in Deleting hunit Pallet Id : ' + convert(varchar, @ll_pallet_id)
+							Execute write_log @FileId, @FileMsg		
+							return -1;
+						end
+						else
+						begin
+							Set @FileMsg = @FunctionName + ' Hunit1 Deleted for Dummy Pallet Id :' + convert(varchar, @ll_pallet_id)
+							Execute write_log @FileId, @FileMsg		
+						end
+       					
+
+						Set @FileMsg = @FunctionName + '@MVT_ERROR: '+ convert(varchar, @MVT_ERROR)
+						Execute PHGWMS.write_log  @FileId, @FileMsg;
+										
+
+				   IF(@MVT_ERROR > 0)
+					  Begin  
+								If (@MVT_ERROR > 1)
+									begin
+											set @ls_error = 'PALLET REJECT - BARCODE NOT READ (99999)';
+											set @UserMsg  = 'PALLET REJECT - PALLET ID BARCODE NOT READ';
+									end
+									Else IF (@MVT_ERROR = 3)
+											Begin					
+												set @ls_error = 'PALLET REJECTED - PALLET ID STATUS IS INVALID';                                   
+												set @UserMsg  = 'PALLET REJECTED - PALLET ID STATUS IS INVALID';
+											End
+									Else IF(@MVT_ERROR = 4) 
+											Begin
+												set @ls_error = 'PALLET REJECTED - LOCATION IN ASRS IS UNAVAILABLE';                                   
+												set @UserMsg  = 'PALLET REJECTED - LOCATION NOT AVAILABLE';
+											End
+									Else IF(@MVT_ERROR = 5)
+											Begin
+												 set @ls_error = 'PALLET REJECTED - NO RECORD IN DATABASE';                                    
+												 set @UserMsg = 'REJECTED - Pallet ID Not in Database'; 
+											End
+									Else IF(@MVT_ERROR = 6)
+											Begin
+												set @ls_error = 'PALLET REJECTED - Incoherent Pallet Type'					
+												 set @UserMsg = 'PALLET REJECTED - Pallet ID Not in Database';
+											End
+									Else IF(@MVT_ERROR = 7) 
+											Begin
+												set @ls_error = 'PALLET REJECTED - Incoherent Pallet Weight';
+												set @UserMsg = 'PALLET REJECTED - Incoherent Pallet Weight';
+											End
+
+									Else
+											Begin
+												set @ls_error = 'PALLET REJECTED - Profile Check Error';
+												set @UserMsg = 'PALLET REJECTED - Profile Check Error';
+											end
+									Set @FileMsg = @FunctionName + ' '+ @ls_error+' '
+									Execute PHGWMS.write_log  @FileId, @FileMsg;
+
+									--Terminate the HU movement >TRM
+
+									UPDATE PHGWMS.HUMOVT
+										SET mvt_hu_id = @MVT_PAR1	,
+											mvt_dt_trm = getdate()	,											
+											MVT_PAR8 = @ls_error,
+											mvt_stat = 'TRM'
+									WHERE mvt_id = @MVT_ID;	 
+
+									IF (@@ROWCOUNT <> 1) 
+									BEGIN
+										Set @FileMsg = @FunctionName + 'Error on update table HUMOVT, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+										Execute PHGWMS.write_log  @FileId, @FileMsg
+										Return -1;
+									END
+
+									Set @FileMsg = @FunctionName + ' humovt updated trm mvt_id  =  :' + convert(varchar, @MVT_ID)
+									Execute PHGWMS.write_log @FileId, @FileMsg;
+
+				      End; -- IF @MVT_ERROR > 0
+				   ELSE --(@MVT_ERROR > 0)
+						Begin
+						 --- After Store pallet Into ASRS
+								 UPDATE HUNIT1
+									SET     
+										hu_actual_wrh     = @mvt_dst_wrh,
+										hu_actual_aisl    = @mvt_dst_a,
+										hu_actual_hp_grp  = @mvt_cur_hp_grp,  -- originally mvt_dst_hp_grp
+										hu_actual_hp      = @mvt_cur_hp,      -- originally mvt_dst_hp
+										hu_actual_loc     = @mvt_dst_loc,
+										hu_actual_pos     = @mvt_dst_pos,
+										hu_actual_x       = @mvt_dst_x,
+										hu_actual_y       = @mvt_dst_y,
+										hu_actual_z       = @mvt_dst_z,
+										hu_actual_p       = @mvt_dst_p,
+										hu_assign_wrh     = @mvt_dst_wrh,
+										hu_assign_aisl    = @mvt_dst_a,
+										hu_assign_hp_grp  = @mvt_cur_hp_grp,  -- originally mvt_dst_hp_grp
+										hu_assign_hp      = @mvt_cur_hp,      -- originally mvt_dst_hp
+										hu_assign_loc     = @mvt_dst_loc,
+										hu_assign_pos     = @mvt_dst_pos,
+										hu_assign_x       = @mvt_dst_x,
+										hu_assign_y       = @mvt_dst_y,
+										hu_assign_z       = @mvt_dst_z,
+										hu_assign_p       = @mvt_dst_p,   
+										hu_hupt_id        = @mvt_hupt_id,
+										hu_par1           = '1',
+										hu_par2           = NULL,
+										hu_dt_last_in     = GETDATE(),       
+										hu_stat           = 'STK',
+										hu_par5           = 'ASRS',
+										hu_par4           = NULL,
+										hu_par7           = NULL,
+										hu_par8           = NULL
+									WHERE  hu_id = @ll_pallet_id;   
+
+			
+								IF (@@ROWCOUNT <> 1) 
+								BEGIN
+									Set @FileMsg = @FunctionName + 'Error on update HUnit1 table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+									Execute PHGWMS.write_log  @FileId, @FileMsg
+									Return -1;
+								END 
+			
+								Set @FileMsg = @FunctionName + ' Hunit1 updated to STK sucessfully for Pallet Id :'+cast(@ll_pallet_id as varchar)
+								Execute PHGWMS.write_log @FileId, @FileMsg
+
+							
+								Select	@Hu_HuBarCod	= hu_bar_cod
+									,		@Hu_HuptId		= hu_hupt_id
+									,		@Hu_HultDd		= hu_hult_id
+									,		@Hu_Type		= hu_mvt_type
+									,		@Hu_SrcHe		= hu_actual_he
+									,		@Hu_SrcWrh		= hu_actual_wrh
+									,		@Hu_SrcHpGrp	= hu_actual_hp_grp
+									,		@Hu_SrcHp		= hu_actual_hp
+									,		@Hu_SrcLoc		= hu_actual_loc
+									,		@Hu_SrcPos		= hu_actual_pos
+									,		@Hu_SrcA		= hu_actual_aisl
+									,		@Hu_SrcX		= hu_actual_x
+									,		@Hu_SrcY		= hu_actual_y
+									,		@Hu_SrcZ		= hu_actual_z
+									,		@Hu_SrcP		= hu_actual_p
+									,		@Hu_DstHe		= hu_assign_he
+									,		@Hu_DstWrh		= hu_assign_wrh
+									,		@Hu_DstHpGrp	= hu_assign_hp_grp
+									,		@Hu_DstHp		= hu_assign_hp
+									,		@Hu_DstLoc		= hu_assign_loc
+									,		@Hu_DstPos		= hu_assign_pos
+									,		@Hu_DstA		= hu_assign_aisl
+									,		@Hu_DstX		= hu_assign_x
+									,		@Hu_DstY		= hu_assign_y
+									,		@Hu_DstZ		= hu_assign_z
+									,		@Hu_DstP		= hu_assign_p
+									,		@Hu_HuWidt		= hu_widt
+									,		@Hu_HuHeig		= hu_heig
+									,		@Hu_HuDept		= hu_dept
+									,		@Hu_HuLeng		= hu_leng
+									,		@Hu_RoutRef		= hu_rout_ref
+									,		@Hu_RoutCod		= hu_rout_cod
+									,		@Hu_RoutSeq		= hu_rout_seq
+									,		@Hu_Par1		= hu_par1
+									,		@Hu_Par2		= hu_par2
+									,		@Hu_Par3		= hu_par3
+									,		@Hu_Par4		= hu_par4
+									,		@Hu_Par5		= hu_par5
+									,		@Hu_Par6		= hu_par6
+									,		@Hu_Par7		= hu_par7
+									,		@Hu_Par8		= hu_par8
+									,		@ldt_hu_dt_last_out	= hu_dt_last_out
+									,       @HU_USAGE           = HU_USAGE
+									from	PHGWMS.hunit1
+									where	hu_id			= @ll_pallet_id;
+
+							 If(@HU_USAGE <> 'EMP') 
+								Begin 
+								  /*
+										UPDATE PHGWMS.STOCKITM1
+										SET    stk_dt_last_in = getdate()
+										WHERE  hu_id = @ll_pallet_id;
+			
+										IF (@@ROWCOUNT <> 1) 
+										BEGIN
+											Set @FileMsg = @FunctionName + 'Error on update STOCKITM1 table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+											Execute PHGWMS.write_log  @FileId, @FileMsg
+											Return -1;
+										END						
+		
+										Set @FileMsg = @FunctionName + ' STOCKITM1 stk_dt_last_in updated, hu_id=' + convert(varchar, @MVT_PAR1)
+										Execute PHGWMS.write_log @FileId, @FileMsg
+									*/
+
+									UPDATE PHGWMS.STOCKMOVT
+									SET MVT_DST_WRH = @MVT_DST_WRH	,
+										MVT_DST_HP_GRP = @MVT_DST_HP_GRP	,
+										MVT_DST_HP = @MVT_DST_HP	,
+										MVT_DST_AISL = @MVT_DST_AISL	,
+										MVT_DST_X = @MVT_DST_X	,
+										MVT_DST_Y = @MVT_DST_Y	,
+										MVT_DST_Z = @MVT_DST_Z	,
+										MVT_DST_P = @MVT_DST_P	,
+										MVT_DT_TRM = getdate()	,
+										MVT_STAT = 'TRM'
+									WHERE mvt_src_hu = @ll_pallet_id
+									--AND mvt_ord_mvt_type IN ('IN')    
+									AND mvt_stat in ('DEF','EXE','LNK','CPA','SHC');
+			
+									IF (@@ROWCOUNT <> 1) 
+									BEGIN
+										Set @FileMsg = @FunctionName + 'Error on update Stockmovt table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+										Execute PHGWMS.write_log  @FileId, @FileMsg
+										Return -1;
+									END 
+									Set @FileMsg = @FunctionName + 'STOCKMOVT updated EXE-->TRM,Pallet id: '+ convert(varchar, @MVT_PAR1)
+									Execute PHGWMS.write_log  @FileId, @FileMsg
+
+								  End --if(@HU_USAGE <> 'EMP') 
+								 set @UserMsg = 'Pallet Id'+cast(@ll_pallet_id as varchar)+' stored in ASRS!!!';
+
+						End --ELSE @MVT_ERROR > 0
+
+					END; --@MVT_TYPE = 'IN_LST'
+
+			 ELSE IF(@MVT_TYPE ='IN_INI')
+					Begin
+		                     Set @ll_pallet_id = @mvt_hu_id; -- Actual Pallet Id  
+
+							    UPDATE HUNIT1
+									SET     
+										hu_actual_wrh     = @mvt_dst_wrh,
+										hu_actual_aisl    = @mvt_dst_a,
+										hu_actual_hp_grp  = @mvt_cur_hp_grp,  -- originally mvt_dst_hp_grp
+										hu_actual_hp      = @mvt_cur_hp,      -- originally mvt_dst_hp
+										hu_actual_loc     = @mvt_dst_loc,
+										hu_actual_pos     = @mvt_dst_pos,
+										hu_actual_x       = @mvt_dst_x,
+										hu_actual_y       = @mvt_dst_y,
+										hu_actual_z       = @mvt_dst_z,
+										hu_actual_p       = @mvt_dst_p,
+										hu_assign_wrh     = @mvt_dst_wrh,
+										hu_assign_aisl    = @mvt_dst_a,
+										hu_assign_hp_grp  = @mvt_cur_hp_grp,  -- originally mvt_dst_hp_grp
+										hu_assign_hp      = @mvt_cur_hp,      -- originally mvt_dst_hp
+										hu_assign_loc     = @mvt_dst_loc,
+										hu_assign_pos     = @mvt_dst_pos,
+										hu_assign_x       = @mvt_dst_x,
+										hu_assign_y       = @mvt_dst_y,
+										hu_assign_z       = @mvt_dst_z,
+										hu_assign_p       = @mvt_dst_p,   
+										hu_hupt_id        = @mvt_hupt_id,
+										hu_dest_cod			='',
+										hu_par1           = '1',
+										hu_par2           = NULL,
+										hu_par3           = NULL,
+										hu_dt_last_in     = GETDATE(),       
+										hu_stat           = 'STK',
+										hu_par5           = 'ASRS',										
+										hu_par4           = NULL,
+										hu_par7           = NULL,
+										hu_par8           = NULL
+									WHERE  hu_id = @ll_pallet_id;   
+												
+								IF (@@ROWCOUNT <> 1) 
+								Begin
+									Set @FileMsg = @FunctionName + 'Error on update HUnit1 table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+									Execute PHGWMS.write_log  @FileId, @FileMsg
+									Return -1;
+								End; 			
+								Set @FileMsg = @FunctionName + ' Hunit1 updated to STK sucessfully for Pallet Id IN_INI :'+cast(@ll_pallet_id as varchar)
+								Execute PHGWMS.write_log @FileId, @FileMsg
+															
+								Select	@Hu_HuBarCod	= hu_bar_cod
+									,		@Hu_HuptId		= hu_hupt_id
+									,		@Hu_HultDd		= hu_hult_id
+									,		@Hu_Type		= hu_mvt_type
+									,		@Hu_SrcHe		= hu_actual_he
+									,		@Hu_SrcWrh		= hu_actual_wrh
+									,		@Hu_SrcHpGrp	= hu_actual_hp_grp
+									,		@Hu_SrcHp		= hu_actual_hp
+									,		@Hu_SrcLoc		= hu_actual_loc
+									,		@Hu_SrcPos		= hu_actual_pos
+									,		@Hu_SrcA		= hu_actual_aisl
+									,		@Hu_SrcX		= hu_actual_x
+									,		@Hu_SrcY		= hu_actual_y
+									,		@Hu_SrcZ		= hu_actual_z
+									,		@Hu_SrcP		= hu_actual_p
+									,		@Hu_DstHe		= hu_assign_he
+									,		@Hu_DstWrh		= hu_assign_wrh
+									,		@Hu_DstHpGrp	= hu_assign_hp_grp
+									,		@Hu_DstHp		= hu_assign_hp
+									,		@Hu_DstLoc		= hu_assign_loc
+									,		@Hu_DstPos		= hu_assign_pos
+									,		@Hu_DstA		= hu_assign_aisl
+									,		@Hu_DstX		= hu_assign_x
+									,		@Hu_DstY		= hu_assign_y
+									,		@Hu_DstZ		= hu_assign_z
+									,		@Hu_DstP		= hu_assign_p
+									,		@Hu_HuWidt		= hu_widt
+									,		@Hu_HuHeig		= hu_heig
+									,		@Hu_HuDept		= hu_dept
+									,		@Hu_HuLeng		= hu_leng
+									,		@Hu_RoutRef		= hu_rout_ref
+									,		@Hu_RoutCod		= hu_rout_cod
+									,		@Hu_RoutSeq		= hu_rout_seq
+									,		@Hu_Par1		= hu_par1
+									,		@Hu_Par2		= hu_par2
+									,		@Hu_Par3		= hu_par3
+									,		@Hu_Par4		= hu_par4
+									,		@Hu_Par5		= hu_par5
+									,		@Hu_Par6		= hu_par6
+									,		@Hu_Par7		= hu_par7
+									,		@Hu_Par8		= hu_par8
+									,		@ldt_hu_dt_last_out	= hu_dt_last_out
+									,       @HU_USAGE           = HU_USAGE
+									from	PHGWMS.hunit1
+									where	hu_id			= @ll_pallet_id;
+
+								 If(@HU_USAGE <> 'EMP') 
+									Begin 
+								    
+									     SELECT   top 1
+										        @ST_MVT_SEQ_NR= MVT_SEQ_NR,
+												@ST_MVT_ORD_ITM = MVT_ORD_ITM, 												
+												@ST_MVT_PRD_QTY=MVT_PRD_QTY, 
+												@ST_MVT_PRD_COD =MVT_PRD_COD ,
+												@ST_MVT_BATCH_NR =MVT_BATCH_NR,
+												@ST_MVT_REQ_DOC_POS = MVT_REQ_DOC_POS,
+												@ST_MVT_ROUT_COD = MVT_ROUT_COD,
+												@ST_MVT_DT_MFG = ISNULL(MVT_DT_MFG,GETDATE()) ,
+												@ST_MVT_SI_NUMBER = MVT_SI_NUMBER,												
+												@ST_MVT_SERIE_NR = MVT_SERIE_NR,
+												@ST_MVT_PAR2 = mvt_par2,
+												@ST_MVT_PAR6 = MVT_PAR6, -- LABEL_NO
+												@ST_MVT_DT_DEF = MVT_DT_DEF
+											FROM STOCKMOVT
+											WHERE MVT_SRC_HU = @ll_pallet_id
+											and mvt_stat in('DEF','EXE','CFM')
+											AND mvt_ord_mvt_type IN ('IN') 
+											AND MVT_PAR2 IN('PAT_IN')
+											and MVT_PRD_COD <>'' ;
+
+											Set @FileMsg = @FunctionName + ' TRANS id: '+ CAST( @ST_MVT_SERIE_NR AS VARCHAR)
+											Execute PHGWMS.write_log  @FileId, @FileMsg
+
+											
+											Set @FileMsg = @FunctionName + ' @@ST_MVT_REQ_DOC_POS: '+ CAST( @ST_MVT_REQ_DOC_POS AS VARCHAR)
+											Execute PHGWMS.write_log  @FileId, @FileMsg
+									       
+								  
+										Select	@ST_MVT_PRD_QTY = STK_PRD_QTY 
+										from PHGWMS.STOCKITM1										
+										WHERE  hu_id = @ll_pallet_id;
+			
+										
+										Set @FileMsg = @FunctionName + ' STOCKITM1 Qty : =' +cast(@ST_MVT_PRD_QTY as varchar)
+										Execute PHGWMS.write_log @FileId, @FileMsg
+									
+
+
+											UPDATE PHGWMS.STOCKMOVT
+											SET MVT_DST_WRH = @MVT_DST_WRH	,
+												MVT_DST_HP_GRP = @MVT_DST_HP_GRP	,
+												MVT_DST_HP = @MVT_DST_HP	,
+												MVT_DST_AISL = @MVT_DST_AISL	,
+												MVT_DST_X = @MVT_DST_X	,
+												MVT_DST_Y = @MVT_DST_Y	,
+												MVT_DST_Z = @MVT_DST_Z	,
+												MVT_DST_P = @MVT_DST_P	,
+												MVT_DT_TRM = getdate()	,
+												MVT_STAT = 'TRM'
+											WHERE mvt_src_hu = @ll_pallet_id
+											AND mvt_ord_mvt_type IN ('IN')  
+											AND mvt_ord_type IN ('IN','CP_TRF')  
+											AND mvt_stat in ('DEF','EXE','CFM','CPA','SHC');
+			
+											IF (@@ROWCOUNT = 0) 
+											BEGIN
+												Set @FileMsg = @FunctionName + 'Error on update Stockmovt table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+												Execute PHGWMS.write_log  @FileId, @FileMsg
+												Return -1;
+											END 
+											Set @FileMsg = @FunctionName + 'STOCKMOVT updated EXE-->TRM,Pallet id: '+ CAST( @ll_pallet_id AS VARCHAR)
+											Execute PHGWMS.write_log  @FileId, @FileMsg
+
+									    If @ST_MVT_SEQ_NR > 0 
+										   Begin
+										     -- insert into WMS_TO_HOST	
+												SELECT @ll_seq_wms_to_host= next value for SEQ_WMS_TO_HOST; --- =  max(wmsH_id) from  WMS_TO_HOST;
+
+												Set @FileMsg = @FunctionName + 'Wms to host Id : '+ cast((@ll_seq_wms_to_host) as varchar)
+											    Execute PHGWMS.write_log  @FileId, @FileMsg
+											
+												
+												INSERT INTO PHGWMS.WMS_TO_HOST
+													(
+														WMSH_SOURCE,
+													--	WMSH_ID,
+														WMSH_MSG_TYPE,
+														WMSH_MSG_TRANS_ID,
+														
+														WMSH_MSG_TRANS_TYPE,
+														PROCESS_CODE,
+														PRODUCT_CODE,
+														BATCH_NO,
+														BOX_QTY,
+														LABEL_NO,
+														PALLET_ID,
+														MFG_DT,														
+														PALLETIZED_DATE,
+														wmsh_dt_def,
+														wmsh_stat,
+														PO_NUMBER,
+														AREA_CODE
+														
+													)
+													VALUES
+													(
+														'WMS',
+													--	@ll_seq_wms_to_host,
+														'PR_ORD_CNF',
+														@ll_seq_wms_to_host,--@ST_MVT_SERIE_NR,
+														'PR_ORD_CNF',
+														@ST_MVT_ROUT_COD,
+														@ST_MVT_PRD_COD,
+														@ST_MVT_BATCH_NR,
+														@ST_MVT_PRD_QTY,
+														@ST_MVT_PAR6,
+														@LL_PALLET_ID,
+														@ST_MVT_DT_MFG,														
+														@ST_MVT_DT_DEF,--GETDATE(),
+														GETDATE(),
+														'DEF',
+														@ST_MVT_REQ_DOC_POS,
+														@ST_MVT_SI_NUMBER
+														
+
+													);
+												
+															If @@ROWCOUNT = 0
+															begin
+																Set @FileMsg =@FunctionName + 'Error into Insert WMS_TO_HOST TABLE lINE NO:1121';
+																EXEC WRITE_LOG @FileId,@FileMsg;
+																return -1;
+															end
+															Else
+															begin
+															    Set @FileMsg =@FunctionName + ' Insert WMS_TO_HOST  With Seq Id'+cast(@ll_wms_to_mes_seq as varchar);
+																EXEC WRITE_LOG @FileId,@FileMsg;
+															end														
+
+										   End
+
+								   End --if(@HU_USAGE <> 'EMP') 
+
+								 Set @UserMsg = 'Pallet Id:'+cast(@ll_pallet_id as varchar)+':Stored into ASRS!!!';	
+								 
+					End; ---(@MVT_TYPE ='IN_INI') 
+
+									UPDATE PHGWMS.HUMOVT
+										SET mvt_dt_trm = getdate(),
+										mvt_last_stat = mvt_stat,
+										mvt_stat = 'TRM',
+										mvt_src_x = @MVT_DST_X,
+										mvt_src_y = @MVT_DST_y,
+										mvt_src_z = @MVT_DST_z,
+										mvt_src_p = @MVT_DST_p
+										WHERE mvt_id = @ll_mvt_id;
+						
+							IF (@@ROWCOUNT <> 1) 
+							BEGIN
+								Set @FileMsg = @FunctionName + ' Error on update HUMOVT table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+								Execute PHGWMS.write_log  @FileId, @FileMsg
+								Return -1;
+							END 
+		
+							Set @FileMsg = @FunctionName + ' HUMOVT updated TRM  With Mvt ID: '+ convert(varchar, @ll_mvt_id)
+							Execute PHGWMS.write_log  @FileId, @FileMsg
+
+							    Select 
+								@LL_COUNT_PND = count(*)
+								From PHGWMS.humovt
+								Where MVT_CANCEL_ID = @ll_pallet_id	
+								and mvt_stat = 'PND';
+
+						    Set @FileMsg = @FunctionName + ' HUMOVT PND Count   : '+ convert(varchar, @LL_COUNT_PND)
+							Execute PHGWMS.write_log  @FileId, @FileMsg
+							
+							    If (@LL_COUNT_PND > 0)
+									Begin								
+											UPDATE PHGWMS.HUMOVT
+												SET MVT_CANCEL_ID=0,
+													MVT_STAT='DEF'
+											WHERE MVT_CANCEL_ID=@ll_pallet_id
+											AND    MVT_STAT='PND';
+
+											Set @FileMsg = @FunctionName + 'Update table humovt to PND-->DEF, MVT_CANCEL_ID: '+ convert(varchar, @ll_pallet_id)
+											Execute PHGWMS.write_log  @FileId, @FileMsg
+									End;
+
+
+	End; --(@MVT_TYPE ='IN_INI or IN_LST')	
+	
+	ELSE IF(@MVT_TYPE ='OUT_PIK')
+		 BEGIN		
+		          set @ll_pallet_id = @mvt_hu_id --- Set Actual Pallet Id
+
+					Set @FileMsg = @FunctionName + ' Current OUT_PIK movement selected  For pallet Id  : ' + convert(varchar, @ll_pallet_id)
+					Execute PHGWMS.write_log @FileId, @FileMsg
+
+							UPDATE PHGWMS.HUMOVT
+						SET mvt_dt_trm = getdate(),
+							mvt_last_stat = @MVT_STAT,
+							mvt_stat = 'TRM'
+						WHERE mvt_id = @ll_mvt_id
+		
+							IF (@@ROWCOUNT <> 1) 
+							begin
+								Set @FileMsg = @FunctionName + 'Error on update table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+								Execute PHGWMS.write_log  @FileId, @FileMsg
+								Return -1
+							end
+	
+							Set @FileMsg = @FunctionName + 'HUMOVT updated sucessfully to TRM for MVT ID  : '+ convert(varchar, @ll_mvt_id)
+							Execute PHGWMS.write_log  @FileId, @FileMsg
+												
+								Select	@Hu_HuBarCod	= hu_bar_cod
+									,		@Hu_HuptId		= hu_hupt_id
+									,		@Hu_HultDd		= hu_hult_id
+									,		@Hu_Type		= hu_mvt_type
+									,		@Hu_SrcHe		= hu_actual_he
+									,		@Hu_SrcWrh		= hu_actual_wrh
+									,		@Hu_SrcHpGrp	= hu_actual_hp_grp
+									,		@Hu_SrcHp		= hu_actual_hp
+									,		@Hu_SrcLoc		= hu_actual_loc
+									,		@Hu_SrcPos		= hu_actual_pos
+									,		@Hu_SrcA		= hu_actual_aisl
+									,		@Hu_SrcX		= hu_actual_x
+									,		@Hu_SrcY		= hu_actual_y
+									,		@Hu_SrcZ		= hu_actual_z
+									,		@Hu_SrcP		= hu_actual_p
+									,		@Hu_DstHe		= hu_assign_he
+									,		@Hu_DstWrh		= hu_assign_wrh
+									,		@Hu_DstHpGrp	= hu_assign_hp_grp
+									,		@Hu_DstHp		= hu_assign_hp
+									,		@Hu_DstLoc		= hu_assign_loc
+									,		@Hu_DstPos		= hu_assign_pos
+									,		@Hu_DstA		= hu_assign_aisl
+									,		@Hu_DstX		= hu_assign_x
+									,		@Hu_DstY		= hu_assign_y
+									,		@Hu_DstZ		= hu_assign_z
+									,		@Hu_DstP		= hu_assign_p
+									,		@Hu_HuWidt		= hu_widt
+									,		@Hu_HuHeig		= hu_heig
+									,		@Hu_HuDept		= hu_dept
+									,		@Hu_HuLeng		= hu_leng
+									,		@Hu_RoutRef		= hu_rout_ref
+									,		@Hu_RoutCod		= hu_rout_cod
+									,		@Hu_RoutSeq		= hu_rout_seq
+									,	    @Hu_destCod		= ISNULL(hu_dest_cod,'')
+									,		@Hu_Par1		= hu_par1
+									,		@Hu_Par2		= hu_par2
+									,		@Hu_Par3		= hu_par3
+									,		@Hu_Par4		= hu_par4
+									,		@Hu_Par5		= hu_par5
+									,		@Hu_Par6		= hu_par6
+									,		@Hu_Par7		= hu_par7
+									,		@Hu_Par8		= hu_par8
+									,		@ldt_hu_dt_last_out	= hu_dt_last_out
+									,       @HU_USAGE           = HU_USAGE
+									from	PHGWMS.hunit1
+									where	hu_id			= @ll_pallet_id;
+
+							Set @FileMsg = @FunctionName + ' HUNIT1 DATA FOUND USEAGE  : '+ CAST( @Hu_destCod AS VARCHAR)
+							Execute PHGWMS.write_log  @FileId, @FileMsg
+
+								IF(@HU_USAGE <>'EMP' and @Hu_destCod ='')
+								  Begin	
+										UPDATE  HUNIT1
+										 SET     HU_STAT = 'PIK',
+										         hu_assign_aisl =0,
+												 HU_ASSIGN_X = 0,
+												 HU_ASSIGN_Y = 0,
+												 HU_ASSIGN_Z = 0,
+												 HU_ASSIGN_P = 0,
+												 HU_ACTUAL_AISL =0,
+												 HU_ACTUAL_X = 0,
+												 HU_ACTUAL_Y = 0,
+												 HU_ACTUAL_Z = 0,
+												 HU_ACTUAL_P = 0
+										WHERE   HU_ID = @ll_pallet_id
+										AND HU_STAT ='RSV';
+
+										--IF (@@ROWCOUNT = 0) 
+										--	Begin
+										--		Set @FileMsg = @FunctionName + 'Error on update Hunit1 table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+										--		Execute PHGWMS.write_log  @FileId, @FileMsg
+										--		Return -1;
+										--	End; 										
+										
+											Set @FileMsg = @FunctionName + ' Hunit1 updated to pik sucessfully for Pallet Id :'+cast(@ll_pallet_id as varchar)
+											Execute PHGWMS.write_log @FileId, @FileMsg;																		
+
+												UPDATE	STOCKMOVT
+												SET		mvt_stat = 'CFW',
+														MVT_DT_EXE = GETDATE()		
+												WHERE	mvt_src_hu = @ll_pallet_id
+												AND     MVT_ORD_MVT_TYPE ='OUT'
+												AND		mvt_stat IN ('EXE','ACT','DEF');
+
+											--IF (@@ROWCOUNT = 0) 
+											--		Begin
+											--			Set @FileMsg = @FunctionName + 'Error on update STOCKMOVT table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+											--			Execute PHGWMS.write_log  @FileId, @FileMsg
+											--			Return -1;
+											--		End; 			
+											--Else
+													begin
+														Set @FileMsg = @FunctionName + ' Hunit1 updated to PIK sucessfully for Pallet Id :'+cast(@ll_pallet_id as varchar)
+														Execute PHGWMS.write_log @FileId, @FileMsg
+													end
+											End;
+								Else IF(@HU_USAGE <>'EMP' and @Hu_destCod ='CPA')
+								  Begin
+										UPDATE  HUNIT1
+										 SET     HU_STAT = 'CPA',
+										      hu_assign_aisl =0,
+												 HU_ASSIGN_X = 0,
+												 HU_ASSIGN_Y = 0,
+												 HU_ASSIGN_Z = 0,
+												 HU_ASSIGN_P = 0,
+												 HU_ACTUAL_AISL = 0,
+												 HU_ACTUAL_X = 0,
+												 HU_ACTUAL_Y = 0,
+												 HU_ACTUAL_Z = 0,
+												 HU_ACTUAL_P = 0
+										WHERE   HU_ID = @ll_pallet_id
+										and HU_DEST_COD ='CPA'
+										AND HU_STAT='RSV';
+
+										--IF (@@ROWCOUNT <> 1) 
+										--	Begin
+										--		Set @FileMsg = @FunctionName + 'Error on update Hunit1 table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+										--		Execute PHGWMS.write_log  @FileId, @FileMsg
+										--		Return -1;
+										--	End; 										
+										
+											Set @FileMsg = @FunctionName + ' Hunit1 updated to CPA sucessfully for Pallet Id :'+cast(@ll_pallet_id as varchar)
+											Execute PHGWMS.write_log @FileId, @FileMsg;																		
+
+												UPDATE	STOCKMOVT
+												SET		mvt_stat = 'CPA',
+														mvt_dt_exe = GETDATE()		
+												WHERE	mvt_src_hu = @ll_pallet_id
+												and     MVT_ORD_TYPE in('CP_TRF')
+												AND		mvt_stat IN ('EXE','ACT','DEF','CFW');
+
+											IF (@@ROWCOUNT = 0) 
+													Begin
+														Set @FileMsg = @FunctionName + 'Error on update STOCKMOVT table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+														Execute PHGWMS.write_log  @FileId, @FileMsg
+														Return -1;
+													End; 			
+											Else
+												begin	
+														Set @FileMsg = @FunctionName + ' Hunit1 updated to PIK sucessfully for Pallet Id :'+cast(@ll_pallet_id as varchar)
+														Execute PHGWMS.write_log @FileId, @FileMsg
+												end	
+	
+								  End
+								ELSE  -- IF HU_Usage EMP
+									Begin
+
+										Delete Hunit1
+										where HU_ID = @ll_pallet_id;
+										--and hu_id not in(99999); --- this is use when empty pallet transfer
+
+										Set @FileMsg = @FunctionName + ' Hunit1 Deleted sucessfully for Pallet Id :'+cast(@ll_pallet_id as varchar)
+										Execute PHGWMS.write_log @FileId, @FileMsg
+
+									End;
+
+							SET @UserMsg = 'Pallet Id:'+ CAST(@ll_pallet_id as varchar)+':Stored out Completed';
+				
+		END;
+	ELSE IF(@MVT_TYPE ='TRF_MVT')
+		BEGIN
+			
+			 set @ll_pallet_id = @mvt_hu_id --- Set Actual Pallet Id
+							    UPDATE HUNIT1
+									SET     
+										hu_actual_wrh     = @mvt_dst_wrh,
+										hu_actual_aisl    = @mvt_dst_a,
+										hu_actual_hp_grp  = @mvt_cur_hp_grp,  -- originally mvt_dst_hp_grp
+										hu_actual_hp      = @mvt_cur_hp,      -- originally mvt_dst_hp
+										hu_actual_loc     = @mvt_dst_loc,
+										hu_actual_pos     = @mvt_dst_pos,
+										hu_actual_x       = @mvt_dst_x,
+										hu_actual_y       = @mvt_dst_y,
+										hu_actual_z       = @mvt_dst_z,
+										hu_actual_p       = @mvt_dst_p,
+										hu_assign_wrh     = @mvt_dst_wrh,
+										hu_assign_aisl    = @mvt_dst_a,
+										hu_assign_hp_grp  = @mvt_cur_hp_grp,  -- originally mvt_dst_hp_grp
+										hu_assign_hp      = @mvt_cur_hp,      -- originally mvt_dst_hp
+										hu_assign_loc     = @mvt_dst_loc,
+										hu_assign_pos     = @mvt_dst_pos,
+										hu_assign_x       = @mvt_dst_x,
+										hu_assign_y       = @mvt_dst_y,
+										hu_assign_z       = @mvt_dst_z,
+										hu_assign_p       = @mvt_dst_p,   
+										hu_hupt_id        = @mvt_hupt_id,
+										hu_par1           = '1',
+										hu_par2           = NULL,
+										hu_dt_last_in     = GETDATE(),       
+										hu_stat           = 'STK',
+										hu_par5           = 'ASRS',
+										hu_par4           = NULL,
+										hu_par7           = NULL,
+										hu_par8           = NULL
+									WHERE  hu_id = @ll_pallet_id;   
+												
+								IF (@@ROWCOUNT <> 1) 
+								Begin
+									Set @FileMsg = @FunctionName + ' Error on update HUnit1 table transfer, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+									Execute PHGWMS.write_log  @FileId, @FileMsg
+									Return -1;
+								End; 			
+								Set @FileMsg = @FunctionName + ' Hunit1 updated to STK sucessfully for Pallet Id :'+cast(@ll_pallet_id as varchar)
+								Execute PHGWMS.write_log @FileId, @FileMsg
+
+						UPDATE PHGWMS.HUMOVT
+						SET mvt_dt_trm = getdate(),
+							mvt_last_stat = @MVT_STAT,
+							mvt_stat = 'TRM'
+						WHERE mvt_id = @ll_mvt_id
+		
+							IF (@@ROWCOUNT <> 1) 
+							begin
+								Set @FileMsg = @FunctionName + ' Error on update table, SQL%ROWCOUNT= '+ convert(varchar, @@ROWCOUNT)
+								Execute PHGWMS.write_log  @FileId, @FileMsg
+								Return -1
+							end
+	
+							Set @FileMsg = @FunctionName + ' HUMOVT updated sucessfully to TRM for MVT ID  : '+ convert(varchar, @ll_mvt_id)
+							Execute PHGWMS.write_log  @FileId, @FileMsg
+
+							SELECT	@ll_count_pallet_trf =count(*)							
+							FROM 	SERIALNR
+							WHERE 	SN_ID = @ll_pallet_id;
+
+
+							if (@ll_count_pallet_trf > 0)
+								Begin								
+								
+										EXEC  @ll_ctrl =  [phgwms].[Kernel_Activate_Output_Movements]
+												@HuId= @mvt_hu_id,
+												@FileId = @FileId;
+											If(@ll_ctrl <= 0)
+											  begin
+													SET @FileMsg = @FunctionName + ' Error - Call SerialNr Process- Check Line No:1285 ';
+													EXEC PHGWMS.write_log @FileId, @FileMsg;
+											  End;
+					
+									SET @FileMsg = @FunctionName + 'Call Serialnr ';
+									EXEC PHGWMS.write_log @FileId, @FileMsg;
+					
+								 End;
+					
+					            Select 
+								@LL_COUNT_PND = count(*)
+								From PHGWMS.humovt
+								Where MVT_CANCEL_ID = @ll_pallet_id	
+								and mvt_stat = 'PND';
+
+						    Set @FileMsg = @FunctionName + ' Humovt PND Count   : '+ convert(varchar, @LL_COUNT_PND)
+							Execute PHGWMS.write_log  @FileId, @FileMsg
+							
+							    If (@LL_COUNT_PND > 0)
+									Begin								
+											UPDATE PHGWMS.HUMOVT
+												SET MVT_CANCEL_ID=0,
+													MVT_STAT='DEF'
+											WHERE MVT_CANCEL_ID=@ll_pallet_id
+											AND    MVT_STAT='PND';
+
+											Set @FileMsg = @FunctionName + ' Update table humovt to PND-->DEF, MVT_CANCEL_ID: '+ convert(varchar, @ll_pallet_id)
+											Execute PHGWMS.write_log  @FileId, @FileMsg
+									End;			
+						Set @UserMsg = 'Pallet Id'+cast(@ll_pallet_id as varchar)+' Re-located in ASRS !!';
+	End;
+	Else
+		 begin
+			Set @FileMsg = @FunctionName + ' **** Invalid Movement Type ****** So Ignore This --'
+			Execute PHGWMS.write_log  @FileId, @FileMsg
+			Return 1;
+		 End;
+	
+		Set @FileMsg = @FunctionName + ' Return - 1 '
+		Execute PHGWMS.write_log  @FileId, @FileMsg;
+	 return 1;
+
+END TRY
+BEGIN CATCH
+	DECLARE @ERROR_MSG NVARCHAR(4000)
+    DECLARE @ERROR_LINE INT
+
+    SET @ERROR_MSG = ERROR_MESSAGE()
+    SET @ERROR_LINE = ERROR_LINE()
+
+   -- PRINT 'Error occurred at line: ' + CAST(@ERROR_LINE AS VARCHAR)
+	 Set @ls_stm =' Error occurred at line: ' + CAST(@ERROR_LINE AS VARCHAR)
+     Execute PHGWMS.write_log @FileId, @ls_stm
+    
+	  Set @ls_stm ='Error message: ' + CAST( @ERROR_MSG AS VARCHAR)
+     Execute PHGWMS.write_log @FileId, @ls_stm
+
+     Set @ls_stm =' Error In catch block... Return -1'
+     Execute PHGWMS.write_log @FileId, @ls_stm
+	 return -1;
+END CATCH
